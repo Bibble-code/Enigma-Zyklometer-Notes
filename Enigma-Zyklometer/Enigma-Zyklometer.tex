@@ -310,7 +310,7 @@
 % Datenbanken & Indizes
 \newglossaryentry{postgresql}{
 	name=PostgreSQL,
-	description={Leistungsstarkes, objektrelationales Open-Source-Datenbank\hyp{}system mit umfangreichen Managementfunktionen.},
+	description={Leistungsstarkes, objektrelationales Open-Source-Datenbank\-system mit umfangreichen Managementfunktionen.},
 	type=db
 }
 \newglossaryentry{primarykey}{
@@ -344,6 +344,11 @@
 	type=db
 }
 
+\newglossaryentry{planner}{
+	name=Query-Planner,
+	description={Komponente einer Datenbank, die entscheidet, wie eine Abfrage ausgeführt wird, um sie möglichst effizient zu machen.},
+	type=db
+}
 
 % Server & Infrastruktur
 \newglossaryentry{nginx}{
@@ -539,7 +544,7 @@ Während es bereits zahlreiche und sehr gute Enigma-Simulatoren gibt, wie etwa d
 
 \newpage
 \section{Zielsetzung}
-Die Zielsetzung dieser Arbeit besteht in der Bereitstellung bestehender C\hyp{}Im\-ple\-men\-tie\-run\-gen der Enigma-\hyp{}Maschine und des Zyklometers als öffentlich zugängliche Webanwendung. Die Applikation soll über das Internet nutzbar sein und dabei grundlegende Anforderungen an Sicherheit und Wartbarkeit erfüllen.  
+Die Zielsetzung dieser Arbeit besteht in der Bereitstellung bestehender C\hyp{}Im\-ple\-men\-tie\-run\-gen der Enigma\hyp{}Maschine und des Zyklometers als öffentlich zugängliche Webanwendung. Die Applikation soll über das Internet nutzbar sein und dabei grundlegende Anforderungen an Sicherheit und Wartbarkeit erfüllen.  
 
 
 Da es keine detaillierten Vorgaben zur technischen Umsetzung gab, liegt ein wesentlicher Bestandteil der Arbeit in der eigenständigen Konzeption einer geeigneten Architektur und Implementierungsstrategie.  
@@ -874,7 +879,7 @@ Die Anwendung wird vollständig auf einem dedizierten Ubuntu-Server (ein Linux-b
 \begin{itemize}
 	\item \textbf{Frontend:} \lstinline|nginx| übernimmt das Routing eingehender HTTP-Anfragen (Stan\-dard-Port 80 für Webverkehr) und dient sowohl als Reverse-Proxy als auch als Webserver für die statischen Frontend-Dateien. Konfiguration unter \lstinline|/etc/nginx/sites-available/enigma|, Inhalte unter \lstinline|/var/www/enigma|.	
 	
-	\item \textbf{Backend:} Die Spring Boot-Anwendung (Version~3.4.5, kompiliert mit Java~23) liegt als ausführbare JAR unter \lstinline|/opt/enigma/enigma_api.jar| vor. Sie wird als systemd-Dienst auf dem lokalen Port 8081 betrieben (\lstinline|enigma.service|) und kommuniziert mit der C-Bibliothek \lstinline|/opt/enigma/enigma_c/libenigma.so| sowie der PostgreSQL-Datenbank. HTTP-Kompression und Caching sind aktiviert.
+	\item \textbf{Backend:} Die Spring Boot-Anwendung (Version~3.4.5, kompiliert mit Java~23) liegt als ausführbare JAR unter \lstinline|/opt/enigma/enigma_api.jar| vor. Sie wird als systemd-Dienst auf dem lokalen Port 8081 betrieben (\lstinline|enigma.service|) und kommuniziert mit der C-Bibliothek \newline \lstinline|/opt/enigma/enigma_c/libenigma.so| sowie der PostgreSQL-Datenbank. HTTP-Kompression und Caching sind aktiviert.
 	
 	\item \textbf{Datenbank:} PostgreSQL~17.5 läuft lokal auf dem Server an Port 5432 und ist ausschließlich für das Backend zugänglich. Genutzt wird die Datenbank \lstinline|catalogue|.
 	
@@ -943,7 +948,7 @@ Die obige Zeile beschreibt eine Enigma-Konfiguration mit der Walzenlage \lstinli
 \subsection{Modularisierung für die Anbindung an einen HTTP-Controller}  
 \label{subsec:c_api_prep}
 
-Im Rahmen der Integration der Enigma-Funktionalität in eine moderne Web\hyp{}architektur wurde der C-Code so angepasst, dass zentrale Funktionen wie \lstinline|enigma_encrypt|, \lstinline|calculate_cycle_lengths| und \lstinline|rotor_mapping| als klar modularisierte, aufrufbare Einheiten vorliegen. Diese Modularisierung ermöglicht es, die Enigma-Logik bequem und zuverlässig von einem HTTP-Controller aus aufzurufen.
+Im Rahmen der Integration der Enigma-Funktionalität in eine moderne Web\-architektur wurde der C-Code so angepasst, dass zentrale Funktionen wie \lstinline|enigma_encrypt|, \lstinline|calculate_cycle_lengths| und \lstinline|rotor_mapping| als klar modularisierte, aufrufbare Einheiten vorliegen. Diese Modularisierung ermöglicht es, die Enigma-Logik bequem und zuverlässig von einem HTTP-Controller aus aufzurufen.
 
 Um die Wartbarkeit und Parallelisierbarkeit zu erhöhen, wurde bewusst auf den Einsatz von globalen Zuständen verzichtet, also Variablen, die außerhalb von Funktionen gemeinsam genutzt werden. Stattdessen werden alle notwendigen Daten über Funktionsparameter und lokale Variablen verwaltet, wodurch Seiteneffekte vermieden und die Integration in unterschiedliche Softwareumgebungen erleichtert wird.
 
@@ -1197,7 +1202,7 @@ Die API stellt drei zentrale Endpunkte unter dem Präfix \lstinline|/api| bereit
 \begin{itemize}
 	\item \lstinline|/api/enigma| — Verschlüsselt Texte anhand spezifischer Enigma\hyp{}Konfigurationen.
 	\item \lstinline|/api/cyclometer| — Führt eine Zyklometer-Simulation basierend auf Enigma\hyp{}Konfigurationen durch.
-	\item \lstinline|/api/catalogue| — Ermöglicht die Abfrage eines Katalogs möglicher Walzenlagen und -stellungen anhand von Zyklusdaten.
+	\item \lstinline|/api/catalogue| — Ermöglicht die Abfrage eines Katalogs möglicher Walzenlagen und Walzenstellungen anhand von Zyklusdaten.
 \end{itemize}
 
 \paragraph{HTTP-Methoden und Content-Type:}
@@ -1337,7 +1342,7 @@ Erforderliche Werte:
 
 \subsubsection{Katalog (/catalogue)}
 
-Der Endpunkt erlaubt die Abfrage eines Katalogs möglicher Walzenlagen und -stellungen, die zu gegebenen Zyklusdaten passen. Die Antwort erfolgt paginiert mit bis zu 100 Einträgen pro Seite.
+Der Endpunkt erlaubt die Abfrage eines Katalogs möglicher Walzenlagen und Walzenstellungen, die zu gegebenen Zyklusdaten passen. Die Antwort erfolgt paginiert mit bis zu 100 Einträgen pro Seite.
 \ \\
 \textbf{Beispielanfrage:}
 \begin{lstlisting}[language=json, caption={Gültige Anfrage an /catalogue}]
@@ -1555,7 +1560,7 @@ AND cardinality(array_positions(p.three_to_six_permut, 1)) >= 2
 	
 	Da die Summe der Zyklenlängen pro Konfiguration maximal 13 beträgt, können Werte ab 7 höchstens einmal vorkommen; Zählspalten für diese Fälle wurden daher nicht erstellt.
 	
-	\item \textbf{Stabilisierung des Query-Plans:} Der PostgreSQL-Query-Planner konnte die Selektivität von Funktionen wie \lstinline|array_positions| nur unzureichend abschätzen, was häufig zu ineffizienten Plänen und vollständigen Tabellenscans führte. Die Einführung von Zählspalten verbesserte die Kostenabschätzung und führte zu stabileren, performanteren Ausführungsplänen.
+	\item \textbf{Stabilisierung des Query-Plans:} Der PostgreSQL-Query-Planner konnte die Selektivität von Funktionen wie \lstinline|array_positions| nur unzureichend abschätzen, was häufig zu ineffizienten Plänen und vollständigen Tabellenscans führte. Die Einführung von Zählspalten verbesserte die Kostenabschätzung und führte zu stabileren, schnellen Ausführungsplänen.
 \end{itemize}
 
 Da die Datenbank statisch blieb und keine weiteren Inserts oder Updates erfolgten, konnten diese Optimierungen ohne Kompromisse bei den Schreiboperationen durchgeführt werden. Die Maßnahmen resultierten in einer hochperformanten und planungssicheren Abfrageinfrastruktur.
