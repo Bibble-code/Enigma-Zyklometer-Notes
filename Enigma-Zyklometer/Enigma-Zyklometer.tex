@@ -556,7 +556,8 @@ Die Enigma war eine der bedeutendsten Verschlüsselungsmaschinen des 20. Jahrhun
 
 Weniger im öffentlichen Bewusstsein verankert, aber ebenso grundlegend, war die Vorarbeit polnischer Kryptologen um Marian Rejewski. Bereits in den 1930er-Jahren gelang es ihnen, die logischen Strukturen der Enigma zu durchdringen und eine methodische Grundlage zu schaffen, auf der die spätere britische Entzifferungsarbeit aufbauen konnte.
 
-Während es bereits zahlreiche Enigma-Simulatoren (wie z.\,B. \autocite{enigma_simulator_palloks}) gibt, fehlt bislang eine Anwendung, die das Zyklometer und die darauf basierende Zyklenanalyse historisch korrekt simuliert und visuell darstellt. Diese Lücke greift die vorliegende Arbeit auf.
+Während es bereits zahlreiche und sehr gute Enigma-Simulatoren gibt, wie etwa die webbasierte Anwendung von Palloks\autocite{enigma_simulator_palloks}, fehlt bislang eine Anwendung, die das Zyklometer und die darauf basierende Zyklenanalyse simuliert und visuell darstellt.
+
 
 \newpage
 \section{Zielsetzung}
@@ -851,98 +852,56 @@ Dieses Kapitel beschreibt die Architektur und den Betrieb der Anwendung. Zunäch
 Die Anwendung ist modular aufgebaut und besteht aus vier Hauptkomponenten:
 
 \begin{itemize}
-	\item \textbf{Frontend:} Eine im Browser laufende Single-Page Application (SPA), die über eine RESTful HTTP-API mit dem Backend kommuniziert. Daten werden dabei im JSON-Format übertragen.
-	
-	\item \textbf{Backend:} Eine Java-Anwendung auf Basis von Spring Boot, die HTTP-Anfragen entgegennimmt, validiert, verarbeitet und Ergebnisse liefert. Sie kommuniziert sowohl mit der Datenbank (über JDBC und Hibernate) als auch mit einer nativen C-Bibliothek (über das Java Foreign Function and Memory API).
-	
-	\item \textbf{Native Bibliothek:} Eine in C geschriebene Shared Library, die kryptografische Berechnungen (Enigma-Simulation und Zyklengenerierung) effizient durchführt. Sie ist direkt über das FFM API in das Backend eingebunden.
-	
-	\item \textbf{Datenbank:} Eine relationale PostgreSQL-Datenbank, in der alle persistierenden Daten (z.\,B. Zyklencharakteristiken) gespeichert werden. Sie wird exklusiv vom Backend angesprochen.
+	\item \textbf{Frontend:} Browserbasierte Single-Page Application (SPA).
+	\item \textbf{Backend:} Java-Anwendung mit Spring Boot.
+	\item \textbf{Native Bibliothek:} In C geschriebene Shared Library für kryptografische Berechnungen.
+	\item \textbf{Datenbank:} Relationale PostgreSQL-Datenbank.
 \end{itemize}
 
-Alle Komponenten kommunizieren über Schnittstellen (HTTP, FFM API, JDBC) und folgen dem Prinzip der klaren Verantwortlichkeit.
+Alle Komponenten kommunizieren über klar definierte Schnittstellen. Das Frontend nutzt eine HTTP-Schnittstelle zur Interaktion mit dem Backend. Das Backend greift über das Java Foreign Function \& Memory API (FFM API) direkt auf die native Bibliothek zu. Die Datenbank wird ausschließlich über JDBC angesprochen. Innerhalb des Backends sind diese Funktionalitäten modular getrennt, was die Wartbarkeit verbessert.
 
-\newpage
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[
+		node distance=1.5cm and 3cm,
+		box/.style={draw, rounded corners, minimum width=4cm, minimum height=1.2cm, align=center},
+		arrow/.style={-Latex, thick, font=\small}
+		]
+		% Oben
+		\node[box] (frontend) {nginx Frontend};
+		% Direkt darunter
+		\node[box, below=of frontend] (backend) {Java Spring Boot Backend};
+		% Darunter nebeneinander
+		\node[box, below=3cm of backend, xshift=-2.5cm] (db) {PostgreSQL-Datenbank};
+		\node[box, below=3cm of backend, xshift=2.5cm] (native) {Native Bibliothek};
+		
+		% Vertikale Pfeile mit Text rechts
+		\draw[<->, thick] (frontend) -- node[right] {HTTP API (REST)} (backend);		
+		\draw[<->, thick] (backend) -- node[left] {JDBC / Hibernate } (db);
+		\draw[<->, thick] (backend) -- node[right] { FFM API} (native);
+	\end{tikzpicture}
+	\caption{Architektur der Anwendung mit Schnittstellen}
+	\label{fig:architektur-schnittstellen}
+\end{figure}
+
+
+Die Anwendung unterstützt drei zentrale Funktionen: Verschlüsselung, Zyklenerzeugung und Katalogabfrage. 
+Die ersten beiden werden über die native Bibliothek im Backend berechnet, während die Katalogabfrage über die PostgreSQL-Datenbank erfolgt.
+
 \subsection{Betrieb und Hostingstrategie}
 
 Die Anwendung wird vollständig auf einem dedizierten Ubuntu-Server (ein Linux-basiertes Betriebssystem) der Hochschule Ravensburg-Weingarten betrieben. Die Bereitstellung erfolgt mit Hilfe etablierter Open-Source-Komponenten:
 
 \begin{itemize}
-	\item \textbf{Frontend:} \lstinline|nginx| übernimmt das Routing eingehender HTTP-Anfragen (Standard-Port 80 für Webverkehr) und dient sowohl als Reverse-Proxy als auch als Webserver für die statischen Frontend-Dateien. Konfiguration unter \lstinline|/etc/nginx/sites-available/enigma|, Inhalte unter \lstinline|/var/www/enigma|.	
+	\item \textbf{Frontend:} \lstinline|nginx| übernimmt das Routing eingehender HTTP-Anfragen (Stan\-dard-Port 80 für Webverkehr) und dient sowohl als Reverse-Proxy als auch als Webserver für die statischen Frontend-Dateien. Konfiguration unter \lstinline|/etc/nginx/sites-available/enigma|, Inhalte unter \lstinline|/var/www/enigma|.	
 	
 	\item \textbf{Backend:} Die Spring Boot-Anwendung (Version~3.4.5, kompiliert mit Java~23) liegt als ausführbare JAR unter \lstinline|/opt/enigma/enigma_api.jar| vor. Sie wird als systemd-Dienst auf dem lokalen Port 8081 betrieben (\lstinline|enigma.service|) und kommuniziert mit der C-Bibliothek \lstinline|/opt/enigma/enigma_c/libenigma.so| sowie der PostgreSQL-Datenbank. HTTP-Kompression und Caching sind aktiviert.
 	
-	\item \textbf{Datenbank:} PostgreSQL~17.5 läuft lokal auf dem Server an Port 5432 und ist ausschließlich für das Backend zugänglich. Genutzt wird die Datenbank \lstinline|catalogue|, mit automatischem Schema-Update (\lstinline|ddl-auto=update|).
+	\item \textbf{Datenbank:} PostgreSQL~17.5 läuft lokal auf dem Server an Port 5432 und ist ausschließlich für das Backend zugänglich. Genutzt wird die Datenbank \lstinline|catalogue|.
 	
 	\item \textbf{Netzwerkanbindung:} Der Server ist über einen hochschulinternen Reverse-Proxy erreichbar. Zugriffsbeschränkungen über IP-Filter, VPN oder Authentifizierung sind derzeit nicht implementiert.
 \end{itemize}
-\newpage
-\subsection{Datenflüsse der Anwendung}
-
-Die Anwendung unterstützt drei zentrale Funktionen im Kontext der Enigma-Analyse:
-
-\begin{enumerate}
-	\item \textbf{Verschlüsselung}: Unterstützung für die Enigma-Modelle \lstinline|I|, \lstinline|M3| und \lstinline|M4|. Dabei werden Eingabetexte entsprechend einer einstellbaren Walzenkonfiguration (Walzenlage, -stellung, Ringstellung, Steckerbrett) verschlüsselt.
-	
-	\item \textbf{Zyklenerzeugung}: Für eine gegebene Walzenkonfiguration können Zyklen gebildet werden, die später zur Identifikation von Tagesschlüsseln dienen.
-	
-	\item \textbf{Katalogabfrage}: Bereits erzeugte Zyklen können mit dem Katalog der Charakteristiken abgeglichen werden um Rückschlüsse auf die ursprünglich verwendete Walzenkonfiguration zu ermöglichen.
-\end{enumerate}
-
-Die Funktionen \textbf{Verschlüsselung} und \textbf{Zyklenerzeugung} erfordern die direkte Nutzung der nativen C-Implementierung. Diese wird über das Java Foreign Function and Memory API (FFM API) in die Spring Boot-Anwendung eingebunden. Der Datenfluss verläuft dabei vom Frontend über den Webserver und die REST-API bis zur C-Bibliothek und umgekehrt.
-
-% Hier folgen die TikZ-Diagramme und der restliche Text unverändert
-
-\begin{figure}[H]
-	\noindent
-	\makebox[0pt][l]{%
-		\begin{tikzpicture}[
-			node distance=1.5cm and 0.5cm,
-			box/.style={draw, rounded corners, minimum width=2.3cm, minimum height=1cm, align=center},
-			arrow/.style={-Latex, thick}
-			]
-			\node[box] (clib) {C-Bibliothek};
-			\node[box, right=of clib] (ffm) {Java FFM API};
-			\node[box, right=of ffm] (api) {Java API};
-			\node[box, right=of api] (nginx) {nginx};
-			\node[box, right=of nginx] (frontend) {Frontend};
-			
-			\draw[<->, thick] (clib) -- (ffm);
-			\draw[<->, thick] (ffm) -- (api);
-			\draw[<->, thick] (api) -- (nginx);
-			\draw[<->, thick] (nginx) -- (frontend);
-		\end{tikzpicture}%
-	}
-	\caption{Datenfluss der Funktionen Verschlüsselung und Zyklenerzeugung}
-	\label{fig:datenfluss-verschluesselung}
-\end{figure}
-
-Im Gegensatz dazu verläuft der Datenfluss bei der \textbf{Katalogabfrage} über eine PostgreSQL-Datenbank, die den Katalog der Charakteristiken enthält. Abfragen auf diesen Katalog werden innerhalb der Java-API über Hibernate und JDBC verarbeitet.
-
-\begin{figure}[H]
-	\noindent
-	\makebox[0pt][l]{%
-		\begin{tikzpicture}[
-			node distance=1.5cm and 0.5cm,
-			box/.style={draw, rounded corners, minimum width=2cm, minimum height=1cm, align=center},
-			arrow/.style={-Latex, thick}
-			]
-			\node[box] (db) {PostgreSQL};
-			\node[box, right=of db] (jdbc) {JDBC + Hibernate};
-			\node[box, right=of jdbc] (api2) {Java API};
-			\node[box, right=of api2] (nginx2) {nginx};
-			\node[box, right=of nginx2] (frontend2) {Frontend};
-			
-			\draw[<->, thick] (db) -- (jdbc);
-			\draw[<->, thick] (jdbc) -- (api2);
-			\draw[<->, thick] (api2) -- (nginx2);
-			\draw[<->, thick] (nginx2) -- (frontend2);
-		\end{tikzpicture}%
-	}
-	\caption{Datenfluss der Katalogabfrage}
-	\label{fig:datenfluss-katalogabfrage}
-\end{figure}
-
 
 
 \newpage
@@ -984,7 +943,7 @@ Ziel dieser Erweiterung ist es, für alle Kombinationen aus Walzenlage und Walze
 \begin{enumerate}
 	\item Für jede Walzenlage werden alle Permutationen generiert \newline(\lstinline|generate_permutations|), also \(\binom{5}{3} \cdot 3! = 60\).
 	\item Für jede Walzenlage werden alle $26^3 = 17\,576$ Walzenstellungen (von \lstinline|AAA| bis \lstinline|ZZZ|) durchlaufen.
-	\item Für jede dieser Konfigurationen werden 26 Spruchschlüssel (\lstinline|"AAAAAA"| bis \lstinline|"ZZZZZZ"|) verschlüsselt, wobei Ringstellung und Steckerverbindungen konstant bleiben.
+	\item Für jede dieser Konfigurationen werden 26 Spruchschlüssel (\lstinline|"AAAAAA"| bis \newline\lstinline|"ZZZZZZ"|) verschlüsselt, wobei Ringstellung und Steckerverbindungen konstant bleiben.
 	\item Aus diesen verschlüsselten Schlüsseln werden die Zyklen bestimmt \newline(\lstinline|calculate_cycle_lengths|).
 	\item Die Ergebnisse werden in einer Textdatei persistiert (\lstinline|print_whole_cycle|).
 \end{enumerate}
@@ -1049,7 +1008,7 @@ Der initiale Ansatz bestand darin, die Enigma-Funktionalität über einen in C i
 Alternativ wurde das Java Native Interface (JNI) evaluiert. Trotz prinzipieller Funktionalität erwies sich der damit verbundene Boilerplate-Code\footnote{Standardisierter, wiederkehrender Code, der in vielen Programmen ähnlich geschrieben werden muss, aber wenig direkte Logik enthält.}, sowie das manuelle Speicher- und Fehlerhandling und der Debugging-Aufwand als nicht zielführend. Zudem ist bei JNI häufig auch sogenannter Glue-Code\footnote{Code, der verschiedene Software-Komponenten oder Systeme miteinander verbindet und ihre Kommunikation ermöglicht.} erforderlich.
 
 
-Die Wahl fiel schließlich auf die Foreign Function \& Memory API (FFM API). Sie ermöglicht typsichere, speichereffiziente und performante Interoperabilität mit nativen C-Bibliotheken – ohne zusätzliche Glue-Code-Ebenen.
+Die Wahl fiel schließlich auf die FFM API. Sie ermöglicht typsichere, speichereffiziente und performante Interoperabilität mit nativen C-Bibliotheken – ohne zusätzliche Glue-Code-Ebenen.
 
 \newpage
 \subsection{Technische Integration mit der FFM API}
@@ -2143,7 +2102,10 @@ Die interaktive Darstellung der Zyklen und der Enigma-Konfigurationen erfolgt in
 \section{Inbetriebnahme und Nutzung der Quellcodebasis}
 \label{sec:nutzung}
 
-Der vollständige Quellcode dieser Arbeit ist in drei öffentlich zugänglichen Repositories auf \lstinline|GitHub| verfügbar. Jede Komponente wird mit einer eigenen \lstinline|README.md|-Datei dokumentiert, die alle relevanten Installations- und Konfigurationshinweise enthält. In diesem Kapitel wird kurz zusammengefasst, wie man die Software installiert und in Betrieb nimmt.
+Der vollständige Quellcode dieser Arbeit ist in vier öffentlich zugänglichen Repositories auf \lstinline|GitHub| verfügbar. Jede Komponente wird mit einer eigenen \lstinline|README.md|-Datei dokumentiert, die alle relevanten Installations- und Konfigurationshinweise enthält. Neben den bereits beschriebenen Projekten steht auch das Repository der Bachelorarbeit selbst zur Verfügung, welches die gesamte Dokumentation und die Codebasis bündelt \autocite{bibblecode2025enigmazyklometer}.
+
+In diesem Kapitel wird die Vorgehensweise zur Installation, Konfiguration und Ausführung der Softwarekomponenten beschrieben.
+
 
 \subsection{Quellcodeübersicht}
 
@@ -2158,7 +2120,7 @@ Der vollständige Quellcode dieser Arbeit ist in drei öffentlich zugänglichen 
 	\item \textbf{Backend REST API}  
 	\newline \lstinline|https://github.com/UPEV1sion/Enigma-API|  
 	
-	Enthält die Spring Boot Anwendung, welche über die \newline\lstinline|Foreign Function & Memory API| mit dem nativen C-Backend kommuniziert.
+	Enthält die Spring Boot Anwendung, welche über die \newline\lstinline|FFM API API| mit dem nativen C-Backend kommuniziert.
 	
 	\item \textbf{Webfrontend (Vue 3)}  
 	\newline \lstinline|https://github.com/Bibble-code/EnigmaSite|
@@ -2187,7 +2149,7 @@ Dabei ist darauf zu achten, dass die Kompilierung \textbf{für das Zielsystem} e
 
 \subsubsection*{2. Backend (Spring Boot)}
 
-Das Backend ist eine Java-Anwendung, die über die Foreign Function \& Memory API auf die native Bibliothek zugreift. Zur Vorbereitung:
+Das Backend ist eine Java-Anwendung, die über die FFM API auf die native Bibliothek zugreift. Zur Vorbereitung:
 
 \begin{itemize}
 	\item \lstinline|Java 22+| und \lstinline|Maven 3.9+| installieren.
@@ -2243,7 +2205,7 @@ Die Aufgabe, eine bestehende C-Implementierung der Enigma-Maschine als Webanwend
 
 \subsection{Herausforderungen in der technischen Umsetzung}
 
-Die Anbindung der bestehenden C-Implementierung der Enigma-Maschine an die Java-basierte Webarchitektur stellte erhebliche technische Herausforderungen dar. Zwar gestaltete sich die Umsetzung der Foreign Function \& Memory API (FFM API) zunächst als schwierig und zeitaufwändig, dennoch erwies sich der Einsatz von FFM letztlich als die richtige Entscheidung. Die API ermöglichte eine stabile Schnittstelle, die den Datenaustausch zwischen C und Java zuverlässig realisierte.
+Die Anbindung der bestehenden C-Implementierung der Enigma-Maschine an die Java-basierte Webarchitektur stellte erhebliche technische Herausforderungen dar. Zwar gestaltete sich die Umsetzung der FFM API zunächst als schwierig und zeitaufwändig, dennoch erwies sich der Einsatz von FFM letztlich als die richtige Entscheidung. Die API ermöglichte eine stabile Schnittstelle, die den Datenaustausch zwischen C und Java zuverlässig realisierte.
 
 Auch die Anbindung der PostgreSQL-Datenbank erwies sich als anspruchsvoll. Die Entwicklung performanter und komplexer Abfragen im Java-Backend erforderte umfangreiche Optimierungen und ein tiefgehendes Verständnis der Datenbank- und Framework-Mechanismen. Besonders die Performanceoptimierung des Katalogsystems erwies sich als deutlich aufwändiger als zunächst erwartet und erforderte wiederholte Anpassungen, um eine flüssige Benutzererfahrung sicherzustellen.
 
