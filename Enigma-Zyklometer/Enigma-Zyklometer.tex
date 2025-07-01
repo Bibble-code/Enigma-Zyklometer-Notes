@@ -1140,8 +1140,7 @@ implements ConstraintValidator<ValidEnigmaReflector, Character> {
 	}
 }
 \end{lstlisting}
-
-Die Validierungslogik wird über eine Annotation, hier \newline\lstinline|@ValidEnigmaReflector|, an ein konkretes Feld der DTO-Klasse gebunden. Die Zuordnung erfolgt durch eine Klasse, die das Interface \lstinline|ConstraintValidator| implementiert und die entsprechende Logik kapselt.\footnote{%
+Die Validierungslogik wird über eine Annotation, hier \lstinline|@ValidEnigmaReflector|, an ein konkretes Feld der DTO-Klasse gebunden. Die Zuordnung erfolgt durch eine Klasse, die das Interface \lstinline|ConstraintValidator| implementiert und die entsprechende Logik kapselt.\footnote{%
 	Ein \lstinline|ConstraintValidator| implementiert die Schnittstelle \newline\lstinline|ConstraintValidator<A, T>| und definiert die Prüfung einer benutzerdefinierten Annotation (\lstinline|A|) auf einem bestimmten Typ (\lstinline|T|).%
 }
 
@@ -1159,7 +1158,7 @@ public record Enigma(
 @ValidEnigmaInput String input) { }
 \end{lstlisting}
 
-Alle Annotationen wie \lstinline|@ValidEnigmaModel| oder \lstinline|@ValidEnigmaPlugboard| gehören zur gleichen Kategorie benutzerdefinierter Validierungen. Sie erweitern den Standardmechanismus des Pakets \lstinline|javax.validation|\footnote{%
+Alle Annotationen wie \lstinline|@ValidEnigmaModel| oder \lstinline|@ValidEnigmaPlugboard|\newline gehören zur gleichen Kategorie benutzerdefinierter Validierungen. Sie erweitern den Standardmechanismus des Pakets \lstinline|javax.validation|\footnote{%
 	\lstinline|javax.validation| ist ein Java-Standardpaket für die deklarative Validierung von Objekten mit Hilfe von Annotationen. Es wird häufig in Verbindung mit Frameworks wie Spring Boot verwendet.%
 }
  und ermöglichen eine semantisch präzise Prüfung der Eingabedaten bereits beim Mapping auf die Data Transfer Objects.
@@ -1711,7 +1710,7 @@ Während der Entwicklung war zusätzlich \lstinline|http://localhost:8080| als e
 
 \paragraph{nginx-Server: CORS-Header für Produktion:}
 
-Auf Serverseite sorgt der \lstinline|nginx|-Server für das Ausliefern der statischen Frontend-Dateien und die Weiterleitung der API-Anfragen an das Backend. Dabei werden ebenfalls notwendige CORS-Header für die Produktion gesetzt um den Zugriff vom Frontend auf die API zu erlauben:
+Auf Serverseite sorgt der \lstinline|nginx|\newline -Server für das Ausliefern der statischen Frontend-Dateien und die Weiterleitung der API-Anfragen an das Backend. Dabei werden ebenfalls notwendige CORS-Header für die Produktion gesetzt um den Zugriff vom Frontend auf die API zu erlauben:
 \newpage
 \begin{lstlisting}[language=nginx, caption=Konfiguration des \lstinline|nginx|-Servers]
 server {
@@ -1786,9 +1785,41 @@ Zur Strukturierung der Komponentenlogik kommt in diesem Projekt die Composition 
 
 Dies führt zu einer klareren Trennung von Anliegen und einer übersichtlicheren Codebasis, insbesondere bei komplexeren Komponenten mit mehreren Funktionalitäten.
 
-Ein zentrales Prinzip der Frontendentwicklung ist die Verwendung wiederverwendbarer und modularer Komponenten. Vue.js ermöglicht mit seinem komponentenbasierten Ansatz, einzelne Funktionseinheiten zu kapseln und flexibel in verschiedenen Kontexten einzusetzen. So stellt beispielsweise die Komponente \newline \lstinline|ReverseMultiSelect.vue|, kombiniert mit \lstinline|TooltipLabel.vue| und einer internen \lstinline|ToggleSwitch|-Logik, eine besonders vielseitige Lösung für Benutzereingaben dar.
+Ein zentrales Prinzip der Frontendentwicklung ist die Verwendung wiederverwendbarer und modularer Komponenten. Vue.js ermöglicht mit seinem komponentenbasierten Ansatz, einzelne Funktionseinheiten zu kapseln und flexibel in verschiedenen Kontexten einzusetzen. So stellt beispielsweise die Komponente \newline \lstinline|ReverseMultiSelect.vue|, kombiniert mit \lstinline|TooltipLabel.vue| und einer internen \lstinline|ToggleSwitch|-Logik, eine vielseitige Lösung für Benutzereingaben der Enigma-Konfiguration dar.
 
-\subsubsection*{Beispiel: \lstinline|ReverseMultiSelect.vue|}
+
+\subsubsection{Designprinzipien: Wiederverwendbarkeit und Modularität}
+
+Die Logik, Darstellung und Interaktion werden klar voneinander getrennt. Die Logik der Mehrfachauswahl ist beispielsweise in einer eigenen \lstinline|ReverseMultiSelect|\newline -Struktur gekapselt, sodass diese unabhängig von der erweiterten Checkbox-Logik wiederverwendet werden kann. Die Komponente \lstinline|TooltipLabel.vue| ist als eigenständige Benutzeroberflächen-Komponente für beschriftete Tooltips ausgelegt.
+
+\ \\
+Die Abbildung \ref{fig:component-view-hierarchy-graph} zeigt exemplarisch, wie die Komponenten- und View-Hierarchie der Anwendung in der Praxis zusammenspielen kann.
+\ \\
+
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}[>=Stealth]
+		\tikzset{
+			box/.style={
+				rectangle, draw, rounded corners, minimum width=4cm, minimum height=1cm, align=center, font=\sffamily
+			}
+		}
+\graph [spring layout, nodes={box}, edges={->, thick}, 
+component sep=2cm, node distance=2.7cm] {
+	"ReverseMultiSelect.vue" -> {"EnigmaRequestView.vue", "CyclometerView.vue"};
+	"ToggleSwitch.vue" -> {"ReverseMultiSelect.vue", "EnigmaRequestView.vue"};
+	"TooltipLabel.vue" -> { "ReverseMultiSelect.vue", "CyclometerView.vue"};
+};
+
+	\end{tikzpicture}
+	\caption{Übersicht der Komponenten und View-Hierarchie in der Vue.js-Anwendung}
+	\label{fig:component-view-hierarchy-graph}
+\end{figure}
+
+Durch solche Strukturen, welche hier exemplarisch gezeigt werden, entsteht eine hohe Wiederverwendbarkeit und Erweiterbarkeit. Neue Anwendungsfälle lassen sich mit minimalem Anpassungsaufwand umsetzen. Auch zukünftige Erweiterungen zum Beispiel durch Validierungsmechanismen, alternative Eingabetypen oder mehrsprachige Beschriftungen sind problemlos integrierbar, ohne dass bestehende Komponenten verändert werden müssen.
+
+
+\subsubsection{Beispiel: \lstinline|ReverseMultiSelect.vue|}
 
 Die Komponente \lstinline|ReverseMultiSelect.vue| ermöglicht es, eine oder mehrere Auswahlfelder (Dropdowns) dynamisch zu rendern. Dabei berücksichtigt sie unterschiedliche Anforderungen:
 
@@ -1827,41 +1858,12 @@ info="Hier wird die Reihenfolge..."
 
 
 
-\subsubsection{Designprinzipien: Wiederverwendbarkeit und Modularität}
-
-Die Logik, Darstellung und Interaktion werden klar voneinander getrennt. Die Logik der Mehrfachauswahl ist beispielsweise in einer eigenen \lstinline|MultiSelect|-Struktur gekapselt, sodass diese unabhängig von der erweiterten Checkbox-Logik wiederverwendet werden kann. Die Komponente \lstinline|TooltipLabel.vue| ist als eigenständige Benutzeroberflächen-Komponente für beschriftete Tooltips ausgelegt.
-
-\ \\
-Die Abbildung \ref{fig:component-view-hierarchy-graph} zeigt exemplarisch, wie die Komponenten- und View-Hierarchie der Anwendung in der Praxis zusammenspielen kann.
-\ \\
-
-\begin{figure}[ht]
-	\centering
-	\begin{tikzpicture}[>=Stealth]
-		\tikzset{
-			box/.style={
-				rectangle, draw, rounded corners, minimum width=4cm, minimum height=1cm, align=center, font=\sffamily
-			}
-		}
-\graph [spring layout, nodes={box}, edges={->, thick}, 
-component sep=2cm, node distance=2.7cm] {
-	"ReverseMultiSelect.vue" -> {"EnigmaRequestView.vue", "CyclometerView.vue"};
-	"ToggleSwitch.vue" -> {"ReverseMultiSelect.vue", "EnigmaRequestView.vue"};
-	"TooltipLabel.vue" -> { "ReverseMultiSelect.vue", "CyclometerView.vue"};
-};
-
-	\end{tikzpicture}
-	\caption{Übersicht der Komponenten und View-Hierarchie in der Vue.js-Anwendung}
-	\label{fig:component-view-hierarchy-graph}
-\end{figure}
-
-Durch solche Strukturen, welche hier exemplarisch gezeigt werden, entsteht eine hohe Wiederverwendbarkeit und Erweiterbarkeit. Neue Anwendungsfälle lassen sich mit minimalem Anpassungsaufwand umsetzen. Auch zukünftige Erweiterungen zum Beispiel durch Validierungsmechanismen, alternative Eingabetypen oder mehrsprachige Beschriftungen sind problemlos integrierbar, ohne dass bestehende Komponenten verändert werden müssen.
-
 
 \subsection{Routing mit Vue Router}
 
-Der Router ist in \lstinline|router/index.js| definiert und nutzt das History-API\footnote{Ein Web-API zur Steuerung des Browserverlaufs, das saubere URLs ohne \#-Zeichen erlaubt und clientseitige Navigation ohne Seitenreload ermöglicht} für saubere URLs ohne Hash-Zeichen, wobei die Navigation der des Browsers nachempfunden ist. Die wichtigsten Routen sind:
+Der Router, definiert in \lstinline|router/index.js|, nutzt das History-API\footnote{Ein Web-API zur Steuerung des Browserverlaufs, das saubere URLs ohne \#-Zeichen erlaubt und clientseitige Navigation ohne Seitenreload ermöglicht}, um die Navigation innerhalb der Single-Page Application (SPA) zu steuern. Er sorgt dafür, dass beim Wechsel zwischen verschiedenen Ansichten keine vollständige Seitenaktualisierung erfolgt, sondern nur die entsprechenden Komponenten dynamisch geladen und angezeigt werden. So entsteht schnelles Benutzererlebnis mit sauberen URLs.
 
+Die wichtigsten Routen sind:
 
 \begin{lstlisting}[language=JavaScript, caption=Vue Router Konfiguration]
 import { createRouter, createWebHistory } from "vue-router";
@@ -1887,8 +1889,11 @@ export default router;
 
 Für die Kommunikation zwischen Frontend und Backend wird die JavaScript-Bibliothek \lstinline|axios| verwendet. Eine zentrale Instanz wird in \lstinline|Enigma.js| mit dem Basis-URL-Präfix \lstinline|/api| erstellt.
 
-Die Datei \lstinline|BackendEnigma.js| kapselt die Logik für konkrete API-Aufrufe. Dort wird auf die zentrale \lstinline|axios|-Instanz zurückgegriffen. Das folgende Beispiel zeigt die Methode zur Verschlüsselung einer Eingabe über den Endpunkt \lstinline|/enigma|:
-\newpage
+Die Datei \lstinline|BackendEnigma.js| kapselt die Logik für konkrete API-Aufrufe. Dort wird auf die zentrale \lstinline|axios|-Instanz zurückgegriffen. 
+
+\ \\
+Das folgende Beispiel zeigt die Methode zur Verschlüsselung einer Eingabe über den Endpunkt \lstinline|/enigma|:
+
 \begin{lstlisting}[language=JavaScript, caption=API-Aufruf in \texttt{BackendEnigma.js}]
 import axios from "axios";
 	// zentrale Axios-Instanz
@@ -1901,8 +1906,8 @@ export function getEncryption(data) {
 }
 \end{lstlisting}
 
-
-\paragraph{Fehlerbehandlung:}
+\newpage
+\subsubsection{Fehlerbehandlung Kommunikation mit dem Backend}
 
 Für die Fehlerbehandlung im Frontend wird die Bibliothek \lstinline|toast| verwendet, um Benutzern eine unmittelbare Rückmeldung über Fehlerzustände zu geben. Insbesondere werden HTTP-Fehlercodes 400 und 500 abgefangen. 
 
