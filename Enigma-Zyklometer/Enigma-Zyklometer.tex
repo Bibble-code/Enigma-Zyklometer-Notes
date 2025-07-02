@@ -36,9 +36,27 @@
 
 % --- Zeichnungen mit TikZ & Forest ---
 \usepackage{tikz}
-\usetikzlibrary{arrows,automata,shapes,calc, positioning, arrows.meta, graphs, graphdrawing, shapes, quotes}
-\usegdlibrary{force}
+\usetikzlibrary{
+	arrows.meta,        % für moderne Pfeile
+	automata,
+	shapes,
+	calc,
+	positioning,        % für node distance etc.
+	quotes,
+	graphs,             % TikZ Graph Library
+	graphdrawing        % benötigt für layered layout etc.
+}
+
+% Falls versehentlich doppelt:
+% \usetikzlibrary{shapes} ist schon enthalten, kann einmal entfernt werden
+
+% Graph Drawing Libraries (nur mit LuaLaTeX oder XeLaTeX!)
+\usegdlibrary{layered} % ← für layered layout
+\usegdlibrary{force}   % ← falls du auch force-directed layouts nutzt
+
+% Falls du forest nutzt:
 \usepackage{forest}
+
 
 % --- Farben & Listings (Code) ---
 \usepackage{xcolor}
@@ -593,7 +611,7 @@ Die Enigma~I verfügt über einen Walzensatz von fünf verschiedenen \textbf{Wal
 
 Jede Walze besteht aus einem festen Verdrahtungskern sowie einem drehbaren äußeren Ring, auf dem Zahlen angebracht sind. Dieser äußere Ring trägt eine \textbf{Kerbe (engl. notch)}, die bestimmt, wann die nachfolgende Walze beim Tastendruck mitrotiert.
 
-\textbf{Walzenstellung} (engl. rotor position) bezeichnet die jeweils aktuelle Position der Walze im Betrieb – also welcher Buchstabe gerade oben im Sichtfenster angezeigt wird. Nach jedem Tastendruck wird die linke (schnelle) Walze um einen Buchstaben weitergedreht. Die anderen Walzen drehen sich nur, wenn die vorherige Walze ihre Einkerbung erreicht hat.  
+\textbf{Walzenstellung} (engl. rotor position) bezeichnet die jeweils aktuelle Position der Walze im Betrieb – also welcher Buchstabe gerade oben im Sichtfenster angezeigt wird. Nach jedem Tastendruck wird die rechte (schnelle) Walze um einen Buchstaben weitergedreht. Die anderen Walzen drehen sich nur, wenn die vorherige Walze ihre Einkerbung erreicht hat.  
 
 
 \textbf{Ringstellung} (engl. ring position) beschreibt hingegen die Position der inneren Verdrahtung relativ zum äußeren Ring mit Buchstaben. Sie legt damit fest, an welcher Buchstabenposition sich die Schaltkerbe befindet und wie der elektrische Signalweg durch die Walze verläuft. Die Ringstellung wird vor dem Einsatz mechanisch über eine Schraube verstellt und bleibt während des Betriebs konstant. Sie beeinflusst sowohl den Verschlüsselungsweg als auch das Schaltverhalten der Maschine.
@@ -731,8 +749,9 @@ Wichtig dabei ist, dass jeder Buchstabe im Alphabet genau einmal in einer Zuordn
 
 Dieser Vorgang wird getrennt für jede der drei Positionspaarungen (1:4, 2:5, 3:6) durchgeführt. Für jede dieser Zuordnungsgruppen entsteht dabei eine eigene Zyklenstruktur. Man erhält somit pro Nachricht drei charakteristische Zyklenmengen, die getrennt analysiert werden.
 
-Das Verfahren wird auf alle Buchstabenpaare angewendet, bis das gesamte Alphabet in disjunkte Zyklen eingeteilt ist. Die Gesamtheit dieser Zyklen bezeichnet man als \textbf{Charakteristik}. Entscheidend sind dabei nicht die konkreten Buchstaben, sondern ausschließlich die \textbf{Zyklenlängen}.
+Das Verfahren wird auf alle Buchstabenpaare angewendet, bis das gesamte Alphabet in disjunkte Zyklen eingeteilt ist. Die Gesamtheit dieser Zyklen bezeichnet man als \textbf{Charakteristik}.
 
+Durch die doppelte Übertragung des Spruchschlüssels entstehen jeweils zwei zueinander inverse Permutationen mit identischer Zyklenstruktur. Daher tritt jede Zyklencharakteristik im Zyklometer in doppelter Ausführung auf.
 
 \newpage
 \subsubsection{Technische Umsetzung des Zyklometers}
@@ -756,17 +775,16 @@ In Abbildung~\ref{fig:Zyklometer} ist ein Zyklometer zu sehen. Jeder Buchstabe i
 
 \subsubsection{Katalog der Charakteristiken}
 
-Im Katalog der Charakteristiken werden alle Zyklenlängen der Enigma~I-Permutationen bei neutraler Ringstellung und Umkehrwalze UKW-B dokumentiert. Ist die tatsächliche Ringstellung bekannt, lässt sich ihr Einfluss durch Subtraktion der Ringstellung von der Walzenstellung (modulo~26) kompensieren. So bleibt der Abgleich mit dem Katalog gültig.
+Im Katalog der Charakteristiken werden alle Zyklen der Enigma~I-Permutationen bei neutraler Ringstellung und Umkehrwalze UKW-B dokumentiert. Ist die tatsächliche Ringstellung bekannt, lässt sich ihr Einfluss durch Subtraktion der Ringstellung von der Walzenstellung (modulo~26) kompensieren. So bleibt der Abgleich mit dem Katalog gültig.
 
 
 
-Insgesamt wurden bei der Erstellung des Katalogs \(63\,420\) eindeutig unterschiedliche Zyklenlängen-Charakteristiken erfasst, das heißt, diese Zahl entspricht der Menge aller bei den untersuchten Konfigurationen tatsächlich aufgetretenen, einzigartigen Zyklenlängenmuster.
+Der Katalog wird enthält für alle möglichen Permutationen die charakteristischen Zyklen. Insgesamt enthält der Katalog \(63\,420\) eindeutig unterschiedliche Zyklenlängen-Charakteristiken.
 
 
 
-
-
-Die Gesamtzahl der möglichen Enigma~I-Permutationenn ergibt sich aus der Anzahl der Walzenlagen, Walzenstellungen und Ringstellungen:
+\newpage
+Die Gesamtzahl der möglichen Enigma~I-Permutationen ergibt sich aus der Anzahl der Walzenlagen, Walzenstellungen und Ringstellungen:
 
 \[
 \text{Walzenlagen} = \binom{5}{3} \cdot 3! = 10 \cdot 6 = 60
@@ -789,12 +807,14 @@ Da die Ringstellung in der Analyse als bekannt vorausgesetzt wird, reduziert sic
 
 \paragraph{Abgleich Walzenlage und Walzenstellung:}
 
-Diesen über einer Million Konfigurationen stehen \(63\,420\) verschiedene mögliche \textbf{Zyklenlängen\hyp{}Charakteristiken} gegenüber. Damit reduziert sich die Anzahl potenzieller Walzenkonfigurationen pro Charakteristik auf durchschnittlich etwa \(\frac{1\,054\,560}{63\,420} \approx 16{,}6\) Kandidaten. Durch den Vergleich der Zyklenlängen der verschlüsselten Nachricht mit dem Katalog lässt sich die Menge der möglichen Konfigurationen somit deutlich eingrenzen. Diese Auswahl bildet die Grundlage für weitere Analysen, um die exakte Walzenlage und Walzenstellung zu bestimmen.
+Diesen über einer Million Konfigurationen stehen \(63\,420\) verschiedene mögliche \textbf{Zyklenlängen\hyp{}Charakteristiken} gegenüber. Damit reduziert sich die Anzahl potenzieller Walzenkonfigurationen pro Charakteristik auf durchschnittlich etwa \(\frac{1\,054\,560}{63\,420} \approx 16{,}6\) Kandidaten. Durch den Vergleich der Zyklenlängen der verschlüsselten Nachricht mit dem Katalog lässt sich die Menge der möglichen Konfigurationen somit deutlich eingrenzen.
 
 
 \paragraph{Analyse des Steckerbretts:}
 
-Das Steckerbrett verändert nicht die Längen der Zyklen, sondern lediglich deren genaue Struktur. Daher können die Zyklenlängen zur Bestimmung der Walzenlage und -stellung herangezogen werden, während die Steckerverbindungen anhand der detaillierten Zyklusstruktur analysiert werden. Dabei muss jedoch zunächst die korrekte Walzenlage und -stellung eingestellt werden. Anschließend wird die Zyklusstruktur, wie sie ohne Steckerbrettverbindungen vorliegt, mit der Zyklusstruktur verglichen, die aus den abgefangenen Nachrichten gewonnen wurde.
+Das Steckerbrett verändert nicht die Längen der Zyklen, sondern lediglich deren innere Struktur. Daher können aus den Zyklenlängen die Walzenlage und -stellung unabhängig von den Steckerbrettverbindungen ermittelt werden.
+
+Die Steckerbrettverbindungen werden anhand der Zyklenstrukturen analysiert. Dabei muss jedoch zunächst die korrekte Walzenlage und -stellung bekannt und eingestellt sein. Anschließend werden die Zyklenstrukturen, wie sie ohne Steckerbrettverbindungen im Katalog vorliegen, mit denen aus den abgefangenen Nachrichten verglichen.
 
 \paragraph{Bestimmung der Ringstellung:}
 
@@ -1402,7 +1422,7 @@ Erforderliche Werte:
 \section{Erstellung des Katalogs}
 \label{sec:db_erstellung}
 
-Für den Katalog der Charakteristiken wurde auf der bestehenden C-Codebasis aufgebaut. Die charakteristischen Zyklen werden, wie in Abschnitt~\ref{subsec:c_db_export} beschrieben, durch eine Erweiterung des C-Programms berechnet. Es generiert alle Permutationen der Walzenlage, iteriert über sämtliche Walzenstellungen und verschlüsselt je 26 Spruchschlüssel. Aus den resultierenden Chiffren werden die Zyklenlängen ermittelt und in einer Textdatei ausgegeben.
+Zur Erstellung des Katalogs der Charakteristiken diente die bestehende C-Codebasis als Grundlage für die Datengenerierung. Der Code wurde dafür gemäß Abschnitt~\ref{subsec:c_db_export} entsprechend erweitert.
   
 Die erzeugte \lstinline|.txt|-Datei wird anschließend in eine relationale PostgreSQL-Datenbank importiert.
 
@@ -1432,8 +1452,8 @@ Zur Sicherstellung der Eindeutigkeit wurde ein zusammengesetzter Primärschlüss
 
 Im Anschluss an den initialen Import wurden Struktur und Datenbankdesign optimiert, um die Effizienz und Benutzerfreundlichkeit zu erhöhen.
 
-Ein zentrales Problem der ursprünglichen Datenstruktur war die redundante Speicherung von Zyklenlängen in den Arrays \lstinline|#_rotor_cycles|.  
-Diese Duplikate enthalten keine zusätzlichen Informationen und verlangsamen Abfragen unnötig. Daher wurde eine Bereinigung vorgenommen, sodass in den Arrays nur noch jeweils eindeutige Zyklenlängen gespeichert werden.
+Ein Problem der ursprünglichen Datenstruktur war die Verdoppelung der Zyklenlängen in den Arrays \lstinline|#_rotor_cycles|.  
+Diese Duplikate enthalten keine zusätzlichen Informationen und verkomplizieren die Abfragen unnötig. Daher wurde eine Bereinigung vorgenommen, sodass in den Arrays nur noch jeweils eindeutige Zyklenlängen gespeichert werden.
 
 
 Darüber hinaus wurde das Format der Walzenstellung überarbeitet. Anstelle der ursprünglichen dreibuchstabigen Klartextdarstellung (z. B. \lstinline|"ABC"|) wird das Feld \lstinline|rotor_positions| nun als Integer-Array geführt, wobei jeder Buchstabe als Wert zwischen \lstinline|0| (\lstinline|A|) und \lstinline|25| (\lstinline|Z|) kodiert wird.  
@@ -1801,27 +1821,60 @@ Die Logik, Darstellung und Interaktion werden klar voneinander getrennt. Die Log
 Die Abbildung \ref{fig:component-view-hierarchy-graph} zeigt exemplarisch, wie die Komponenten- und View-Hierarchie der Anwendung in der Praxis zusammenspielen kann.
 \ \\
 
+%\begin{figure}[ht]
+%	\centering
+%	\begin{tikzpicture}[>=Stealth]
+%		\tikzset{
+%			box/.style={
+%				rectangle, draw, rounded corners, minimum width=4cm, minimum height=1cm, align=center, font=\sffamily
+%			}
+%		}
+%\graph [spring layout, nodes={box}, edges={->, thick}, 
+%component sep=2cm, node distance=2.7cm] {
+%	"ReverseMultiSelect.vue" -> {"EnigmaRequestView.vue", "CyclometerView.vue"};
+%	"ToggleSwitch.vue" -> {"ReverseMultiSelect.vue", "EnigmaRequestView.vue"};
+%	"TooltipLabel.vue" -> { "ReverseMultiSelect.vue", "CyclometerView.vue"};
+%};
+%
+%	\end{tikzpicture}
+%	\caption{Übersicht der Komponenten und View-Hierarchie in der Vue.js-Anwendung}
+%	\label{fig:component-view-hierarchy-graph}
+%\end{figure}
+
 \begin{figure}[ht]
 	\centering
-	\begin{tikzpicture}[>=Stealth]
+	\begin{tikzpicture}[>=Stealth, node distance=2.5cm]
 		\tikzset{
 			box/.style={
 				rectangle, draw, rounded corners, minimum width=4cm, minimum height=1cm, align=center, font=\sffamily
 			}
 		}
-\graph [spring layout, nodes={box}, edges={->, thick}, 
-component sep=2cm, node distance=2.7cm] {
-	"ReverseMultiSelect.vue" -> {"EnigmaRequestView.vue", "CyclometerView.vue"};
-	"ToggleSwitch.vue" -> {"ReverseMultiSelect.vue", "EnigmaRequestView.vue"};
-	"TooltipLabel.vue" -> { "ReverseMultiSelect.vue", "CyclometerView.vue"};
-};
-
+		
+		% Hauptkomponenten
+		\node[box] (enigma) at (0,3) {EnigmaRequestView.vue};
+		\node[box] (reverse) at (0,0) {ReverseMultiSelect.vue};
+		\node[box] (cyclo) at (0,-3) {CyclometerView.vue};
+		
+		% Unterstützende Komponenten links/rechts versetzt auf halber Höhe
+		\node[box] (toggle) at (-5,0) {ToggleSwitch.vue};
+		\node[box] (tooltip) at (5,0) {TooltipLabel.vue};
+		
+		% Verbindungen
+		\draw[->, thick] (reverse) -- (enigma);
+		\draw[->, thick] (reverse) -- (cyclo);
+		\draw[->, thick] (toggle) -- (reverse);
+		\draw[->, thick] (toggle) -- (enigma);
+		\draw[->, thick] (tooltip) -- (reverse);
+		\draw[->, thick] (tooltip) -- (cyclo);
+		
 	\end{tikzpicture}
-	\caption{Übersicht der Komponenten und View-Hierarchie in der Vue.js-Anwendung}
+	\caption{Die Komponenten befinden sich mittig, oben bzw. unten sind die jeweiligen Views.}
 	\label{fig:component-view-hierarchy-graph}
 \end{figure}
 
-Durch solche Strukturen, welche hier exemplarisch gezeigt werden, entsteht eine hohe Wiederverwendbarkeit und Erweiterbarkeit. Neue Anwendungsfälle lassen sich mit minimalem Anpassungsaufwand umsetzen. Auch zukünftige Erweiterungen zum Beispiel durch Validierungsmechanismen, alternative Eingabetypen oder mehrsprachige Beschriftungen sind problemlos integrierbar, ohne dass bestehende Komponenten verändert werden müssen.
+
+
+Durch solche Strukturen, welche hier exemplarisch gezeigt werden, entsteht eine hohe Wiederverwendbarkeit und Erweiterbarkeit. Neue Anwendungsfälle lassen sich mit minimalem Anpassungsaufwand umsetzen.
 
 
 \subsubsection{Beispiel: \lstinline|ReverseMultiSelect.vue|}
@@ -1959,7 +2012,7 @@ So wird etwa die Kombination Walzenstellung \textbf{G} mit Ringstellung \textbf{
 
 Da Begriffe wie Walzenstellung, Ringstellung und Einkerbung bereits ausführlich in einer früheren Arbeit erläutert wurden, wird hier lediglich auf deren Relevanz im Kontext der Benutzeroberfläche Bezug genommen.
 
-Die Walzenlage folgt der historischen Reihenfolge von rechts (schnell) nach links (langsam) und wird in der UI entsprechend durch die \lstinline|ReverseMultiSelect.vue|-Komponente abgebildet; links davon ist, wie beim Original, die Umkehrwalze leicht abgesetzt dargestellt.
+Die dargestellte Walzenlage folgt der historischen Reihenfolge von rechts (schnell) nach links (langsam) und wird in der UI (User Interface) entsprechend durch die \lstinline|ReverseMultiSelect.vue|-Komponente abgebildet; links davon ist, wie beim Original, die Umkehrwalze leicht abgesetzt dargestellt.
 
 
 
@@ -2210,20 +2263,25 @@ Die Arbeit zeigt die erfolgreiche Umsetzung einer komplexen technischen Aufgabe:
 
 Dabei ist es gelungen, erstmals eine funktionierende Simulation des Zyklometers online zur Verfügung zu stellen. So kann die Funktionsweise des Zyklometers besser verstanden und die Analyse der Zyklen praktisch nachvollzogen werden.
 
-Für die Zukunft bieten sich drei größere Erweiterungen an, die das Potenzial der Anwendung deutlich steigern könnten:
+Für die Zukunft bieten sich ein paar größere Erweiterungen an, die das Potenzial der Anwendung deutlich steigern könnten:
 
 \begin{itemize}
 	\item \textbf{Aufteilung der Zyklometer-Abfrage in zwei Stufen:}  
+	Die derzeitige Zyklometer-Abfrage kombiniert derzeit zwei Funktionalitäten: Die Verschlüsselung der Spruchschlüssel und die Generierung der Zyklen aus diesen. Eine Aufteilung könnte wie folgt aussehen:
+	
 	Die erste Stufe erzeugt aus unverschlüsselten Spruchschlüsseln verschlüsselte Spruchschlüssel basierend auf einer Enigma-Konfiguration. In der zweiten Stufe werden anschließend aus diesen verschlüsselten Schlüsseln die charakteristischen Zyklen gebildet. Diese Zweistufigkeit würde die Simulation der sogenannten „deutschen“ und „polnischen“ Seite des Zyklometers realistischer abbilden und die Analyse präzisieren.
 	
 	\item \textbf{Erweiterung um die Entzifferung der Spruchschlüssel:}  
-	Derzeit können mit dem Zyklometer nur Walzenlage und Walzenstellung bestimmt werden, nicht jedoch die Steckerbrett-Verbindungen. Eine zukünftige Erweiterung könnte eine neue Abfrage implementieren, die eine Entzifferung der Steckerbrett-Konfiguration erlaubt. Dies würde die kryptoanalytischen Möglichkeiten der Anwendung erheblich erweitern.
+	Derzeit können mit dem Zyklometer nur Walzenlage und Walzenstellung bestimmt werden, nicht jedoch die Steckerbrett-Verbindungen. Eine zukünftige Erweiterung könnte eine neue Abfrage implementieren, die eine Entzifferung der Steckerbrett-Konfiguration erlaubt.
+	
+	\item \textbf{Integration eines mit dem Spruchschlüssel verschlüsselten Texts:}  
+	Zusätzlich zum verschlüsselten Spruchschlüssel könnte ein kurzer Nachrichtentext übermittelt werden, der mit dem jeweiligen Spruchschlüssel verschlüsselt wird. Nach Rekonstruktion sämtlicher Enigma-Parameter (einschließlich Steckerbrett) könnte zunächst der Spruchschlüssel und anschließend mit diesem der Text entschlüsselt werden. Dies würde eine realitätsnähere Simulation des vollständigen kryptographischen Ablaufs ermöglichen.
 	
 	\item \textbf{Skalierbarkeit und Deployment:}  
 	Bisher wurde auf eine containerisierte Bereitstellung (z.\,B. mit Docker) verzichtet. Eine solche Maßnahme könnte die Skalierbarkeit und Performance der Webanwendung verbessern und den Betrieb vereinfachen.
 \end{itemize}
 
-Diese Weiterentwicklungen würden nicht nur die Funktionalität vertiefen, sondern auch die wissenschaftliche Relevanz und den praktischen Nutzen der Anwendung steigern.
+Diese Weiterentwicklungen würden nicht nur die Funktionalität vertiefen, sondern auch den praktischen Nutzen der Anwendung steigern.
 
 
 %
