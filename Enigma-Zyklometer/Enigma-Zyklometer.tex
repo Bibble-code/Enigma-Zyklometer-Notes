@@ -1715,8 +1715,9 @@ Um diese Problematik zu umgehen, werden zwei Maßnahmen ergriffen:
 	Der Vue\hyp{}Entwicklungsserver leitet API-Anfragen über eine Proxy-Konfiguration (\lstinline|vue.config.js|) an das Backend weiter. Dadurch erscheinen die Anfragen für den Browser, als kämen sie vom gleichen Ursprung, was CORS-Fehler während der lokalen Entwicklung vermeidet.
 	
 	\item \textbf{CORS-Konfiguration im Backend:}  
-	Im produktiven Betrieb oder bei direktem Zugriff auf das Backend müssen die HTTP-Antworten entsprechende der enthalten, die den Zugriff vom Frontend erlauben.
+	Im produktiven Betrieb oder bei direktem Zugriff auf das Backend müssen die HTTP-Antworten entsprechende Header enthalten, die nur den Zugriff von bestimmten erlaubten Domains, z.\,B. \lstinline|https://enigma-zyklometer.rwu.de|, zulassen.
 \end{itemize}
+
 
 \newpage
 \paragraph{Preflight-Anfragen (OPTIONS) und HTTP-Methoden:}
@@ -1743,7 +1744,7 @@ Während der Entwicklung war zusätzlich \lstinline|http://localhost:8080| als e
 
 \paragraph{nginx-Server: CORS-Header für Produktion:}
 
-Auf Serverseite sorgt der \lstinline|nginx|\newline -Server für das Ausliefern der statischen Frontend-Dateien und die Weiterleitung der API-Anfragen an das Backend. Dabei werden ebenfalls notwendige CORS-Header für die Produktion gesetzt um den Zugriff vom Frontend auf die API zu erlauben:
+Ein \lstinline|nginx|\newline -Server sorgt für das Ausliefern der statischen Frontend-Dateien und die Weiterleitung der API-Anfragen an das Backend. Dabei werden ebenfalls notwendige CORS-Header für die Produktion gesetzt um den Zugriff vom Frontend auf die API zu erlauben:
 \newpage
 \begin{lstlisting}[language=nginx, caption=Konfiguration des \lstinline|nginx|-Servers]
 server {
@@ -1927,7 +1928,7 @@ info="Hier wird die Reihenfolge..."
 
 \subsection{Routing mit Vue Router}
 
-Der Router, definiert in \lstinline|router/index.js|, nutzt das History-API\footnote{Ein Web-API zur Steuerung des Browserverlaufs, das saubere URLs ohne \#-Zeichen erlaubt und clientseitige Navigation ohne Seitenreload ermöglicht}, um die Navigation innerhalb der Single-Page Application (SPA) zu steuern. Er sorgt dafür, dass beim Wechsel zwischen verschiedenen Ansichten keine vollständige Seitenaktualisierung erfolgt, sondern nur die entsprechenden Komponenten dynamisch geladen und angezeigt werden. So entsteht schnelles Benutzererlebnis mit sauberen URLs.
+Der Router, definiert in \lstinline|router/index.js|, nutzt das History-API, um die Navigation innerhalb der Single-Page Application (SPA) zu steuern. Er sorgt dafür, dass beim Wechsel zwischen verschiedenen Ansichten keine vollständige Seitenaktualisierung erfolgt, sondern nur die entsprechenden Komponenten dynamisch geladen und angezeigt werden. So entsteht schnelles Benutzererlebnis mit sauberen URLs.
 
 Die wichtigsten Routen sind:
 
@@ -1955,7 +1956,7 @@ export default router;
 
 Für die Kommunikation zwischen Frontend und Backend wird die JavaScript-Bibliothek \lstinline|axios| verwendet. Eine zentrale Instanz wird in \lstinline|Enigma.js| mit dem Basis-URL-Präfix \lstinline|/api| erstellt.
 
-Die Datei \lstinline|BackendEnigma.js| kapselt die Logik für konkrete API-Aufrufe. Dort wird auf die zentrale \lstinline|axios|-Instanz zurückgegriffen. 
+Die Datei \lstinline|BackendEnigma.js| kapselt die Logik für konkrete API-Aufrufe.
 
 \ \\
 Das folgende Beispiel zeigt die Methode zur Verschlüsselung einer Eingabe über den Endpunkt \lstinline|/enigma|:
