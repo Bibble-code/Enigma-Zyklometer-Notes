@@ -585,7 +585,7 @@ Dabei werden folgende Teilziele formuliert und im Verlauf der Arbeit realisiert:
 \newpage
 \section{Kryptographische Grundlagen}
 
-Im Folgenden werden die kryptographischen Grundlagen der Enigma-Maschine sowie des Zyklometers erläutert. Ein tiefes Verständnis dieser Komponenten ist notwendig, um die Funktionsweise der Verschlüsselung und ihre darauf beruhende Analyse nachvollziehen zu können, welche den Grundstein der Implementierung dieser Arbeit bildet.
+Im Folgenden werden die kryptographischen Grundlagen der Enigma-Maschine sowie des Zyklometers erläutert. Ein tiefes Verständnis dieser Komponenten ist notwendig, um die Funktionsweise der Verschlüsselung und ihre darauf beruhende Analyse nachvollziehen zu können.
 
 Dieses Kapitel basiert in Teilen auf der Vorarbeit des Kommilitonen Hasanic zu einem früheren Projekt zur Enigma-Maschine. Die inhaltliche Darstellung sowie die verwendeten Quellen orientieren sich daher an dieser Arbeit, wobei die Inhalte für den Kontext dieser Arbeit angepasst wurden.
 
@@ -605,7 +605,7 @@ Die Enigma besteht aus mehreren Komponenten, die zusammen eine Verschlüsselung 
 Wird eine Taste gedrückt, fließt ein elektrischer Strom durch die Maschine und endet bei einer Lampe, die den verschlüsselten Buchstaben anzeigt. Die Walzen rotieren, sodass selbst identische Klartextzeichen unterschiedliche Chiffren erzeugen. Um eine Nachricht zu entschlüsseln, muss die Enigma in dieselbe Ausgangskonfiguration versetzt werden, mit der die Verschlüsselung erfolgte.
 
 
-
+\newpage
 \subsubsection{Komponenten der Enigma} 
 Die Enigma~I verfügt über einen Walzensatz von fünf verschiedenen \textbf{Walzen (engl. rotors)}, nummeriert mit römischen Ziffern I–V. Aus diesem Satz werden drei Walzen ausgewählt und in einer bestimmten Reihenfolge in die drei Walzenplätze der Maschine eingesetzt. Diese Auswahl und Reihenfolge bezeichnet man als \textbf{Walzenlage}. Die Walzen sind jeweils auf der einen Seite mit flachen Kontakten und auf der anderen mit federbelasteten Stiften versehen. Durch die interne Verdrahtung der Walzen wird jeder Buchstabe auf genau einen anderen abgebildet. Je nach Drehung der Walze ändert sich die Abbildung.
 
@@ -627,7 +627,7 @@ Die Kombination aus \textbf{Walzenlage}, \textbf{Walzenstellung} und \textbf{Rin
 	\label{fig:Explosionsansicht}
 \end{figure}
 
-Abbildung~\ref{fig:Explosionsansicht} zeigt drei Walzen. Links ist die Schaltkerbe gut zu erkennen, mit deren Hilfe die Ringstellung über den nummerierten Einstellring verändert werden kann. Ebenfalls zu sehen sind die flachen Kontakte auf der einen und die Stifte auf der anderen Seite der Walzen. Die \textbf{Walzenstellung} selbst wird hingegen erst in der Enigma-Maschine durch das Sichtfenster sichtbar.
+Abbildung~\ref{fig:Explosionsansicht} zeigt drei Walzen. Auf der linken Walze ist die Schaltkerbe gut zu erkennen. Ebenfalls zu sehen sind die flachen Kontakte auf der einen und die Stifte auf der anderen Seite der Walzen. Die \textbf{Walzenstellung} selbst wird hingegen erst in der Enigma-Maschine durch das Sichtfenster sichtbar.
 
 Die \textbf{Eintrittswalze (ETW)} verbindet das Steckerbrett mit der ersten rotierenden Walze. Sie bildet das Alphabet 1:1 ab, rotiert selbst nicht und besitzt daher keine kryptografische Wirkung, wohl aber eine fest verdrahtete Zuordnung der Kontakte.
 
@@ -729,11 +729,19 @@ Das \textbf{Zyklometer} ist eine von Marian Rejewski entwickelte elektromechanis
 
 \subsubsection{Der Fehler im deutschen Verschlüsselungsverfahren}
 
-Für den täglichen Betrieb der Enigma verwendete die deutsche Wehrmacht Codebücher, welche die \textbf{Tagesschlüssel} für jeden Tag enthielten. Diese umfassten die Walzenlage, Walzenstellung, Ringstellung und die Steckerbrettverbindungen.
+Für den täglichen Betrieb der Enigma verwendete die deutsche Wehrmacht Codebücher, welche die Walzenlage, Walzenstellung, Ringstellung und die Steckerbrettverbindungen für jeden Tag enthielten. Diese Gesamtheit der Einstellungen wird als Tagesschlüssel bezeichnet. 
 
-Zur Sicherung einzelner Nachrichten wählte der Absender einen variablen \textbf{Spruchschlüssel}, der mit drei Buchstaben die Walzenstellung der Enigma angab. Dieser wurde verdoppelt (z.\,B.\ \lstinline|"ABCABC"|) und mit dem Tagesschlüssel verschlüsselt übertragen. Der Empfänger konnte durch Entschlüsselung der ersten sechs Zeichen den Spruchschlüssel rekonstruieren, die Maschine entsprechend einstellen und die Nachricht dechiffrieren.
+%\begin{itemize}
+%	\item Der Absender stellt seine Enigma-Maschine gemäß des Tagesschlüssels ein und übermittelt eine beliebige Walzenstellung für der Nachricht selbst (z.\,B.\ \lstinline|"ABC"|) zweimal hintereinander (hier \lstinline|"ABCABC"|). Dieses übermitteln der Walzenstellung wird auch \textbf{Spruchschlüssel} genannt. Dieser ist nur für die Länge der Nachricht gültig.
+%	\item Anschließend wird die Walzenstellung entsprechend dem Spruchschlüssel vom Absender eingestellt.
+%	\item Der Empfänger stellt seine Enigma-Maschine gemäß des Tagesschlüssels ein und entschlüsselte die ersten sechs Buchstaben, welche dem Spruchschlüssel entsprachen.
+%	\item Anschließend stellt der Absender die Walzenstellung entsprechend dem Spruchschlüssel ein und dechiffrierte die Nachricht.
+%\end{itemize}
 
-Diese Verdopplung erzeugte eine feste Zuordnung zwischen den Buchstabenpositionen 1 und 4, 2 und 5 sowie 3 und 6. Dieser systematische Aufbau offenbarte eine wiederkehrende Struktur, die – unter kryptoanalytischem Blickwinkel – gezielt ausgewertet werden konnte.
+
+Zur Sicherung einzelner Nachrichten wählte der Absender eine eigene Walzenstellung, welche mit drei Buchstaben beschrieben (z.\,B.\ \lstinline|"ABC"|) und als \textbf{Spruchschlüssel} bezeichnet wurde. Dieser Spruchschlüssel wurde verdoppelt (z.\,B.\ \lstinline|"ABCABC"|), mit dem Tagesschlüssel verschlüsselt, übertragen. Der Empfänger konnte durch Entschlüsselung der ersten sechs Zeichen den Spruchschlüssel rekonstruieren, die Maschine entsprechend einstellen und die Nachricht dechiffrieren.
+
+Das doppelte Übertragen des Spruchschlüssels erzeugte allerdings eine feste Zuordnung zwischen den Buchstabenpositionen 1 und 4, 2 und 5 sowie 3 und 6 einer jeden Nachricht eines Tages. Dieser systematische Aufbau offenbarte eine wiederkehrende Struktur, die – unter kryptoanalytischem Blickwinkel – gezielt ausgewertet und als Angriffsvektor verwendet werden konnte.
 
 
 
