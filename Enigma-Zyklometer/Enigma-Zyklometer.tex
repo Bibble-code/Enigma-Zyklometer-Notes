@@ -907,7 +907,7 @@ Die Anwendung wird vollständig auf einem dedizierten Ubuntu-Server (ein Linux-b
 \begin{itemize}
 	\item \textbf{Frontend:} \lstinline|nginx| übernimmt das Routing eingehender HTTP-Anfragen (Stan\-dard-Port 80 für Webverkehr) und dient sowohl als Reverse-Proxy als auch als Webserver für die statischen Frontend-Dateien. Konfiguration unter \lstinline|/etc/nginx/sites-available/enigma|, Inhalte unter \lstinline|/var/www/enigma|.	
 	
-	\item \textbf{Backend:} Die Spring Boot-Anwendung (Version~3.4.5, kompiliert mit Java~23) liegt als ausführbare JAR unter \lstinline|/opt/enigma/enigma_api.jar| vor. Sie wird als systemd-Dienst auf dem lokalen Port 8081 betrieben (\lstinline|enigma.service|) und kommuniziert mit der C-Bibliothek \newline \lstinline|/opt/enigma/enigma_c/libenigma.so| sowie der PostgreSQL-Datenbank. HTTP-Kompression und Caching sind aktiviert.
+	\item \textbf{Backend:} Die Spring Boot-Anwendung (Version~3.4.5, kompiliert mit Java~23) liegt als ausführbare JAR unter \lstinline|/opt/enigma/enigma_api.jar| vor. Sie wird als systemd-Dienst auf dem lokalen Port 8081 betrieben (\lstinline|/etc/systemd/system/enigma.service|) und kommuniziert mit der C-Bibliothek \lstinline|/opt/enigma/enigma_c/libenigma.so| sowie der PostgreSQL-Datenbank. \newline HTTP-Kompression und Caching sind aktiviert.
 	
 	\item \textbf{Datenbank:} PostgreSQL~17.5 läuft lokal auf dem Server an Port 5432 und ist ausschließlich für das Backend zugänglich. Genutzt wird die Datenbank \lstinline|catalogue|.
 	
@@ -2017,7 +2017,6 @@ Die Enigma-API nutzt für Walzen- und Ringstellungen intern einen numerischen We
 
 Historisch wurde bei der Enigma die Walzenstellung ausschließlich durch Buchstaben und die Ringstellung ausschließlich durch Zahlen angegeben. Die Webanwendung zeigt jedoch bewusst beide Darstellungen kombiniert an (z.\,B. \textbf{G} (7)), um die Beziehung zwischen den beiden Positionierungen anschaulich zu machen. 
 
-So wird etwa die Kombination Walzenstellung \textbf{G} mit Ringstellung \textbf{G} intern genauso interpretiert wie Walzenstellung \textbf{A} mit Ringstellung \textbf{A}, solange keine Einkerbung überlaufen wurde. Die durch die Ringstellung bewirkte Verschiebung der Einkerbung bleibt dabei zentral für das Verhalten der Maschine.
 
 Da Begriffe wie Walzenstellung, Ringstellung und Einkerbung bereits ausführlich in einer früheren Arbeit erläutert wurden, wird hier lediglich auf deren Relevanz im Kontext der Benutzeroberfläche Bezug genommen.
 
@@ -2048,7 +2047,7 @@ Die Benutzeroberfläche ist in zwei Hauptbereiche unterteilt: den linken Konfigu
 	\item \textbf{Umkehrwalze}: Festlegung der Umkehrwalze.
 	\item \textbf{Walzenlage}: Auswahl und Anordnung der drei bzw. vier Walzen.
 	\item \textbf{Walzenstellung}: Anfangspositionen der Walzen.
-	\item \textbf{Ringstellung}: Mechanische Verschiebung des Ringkerns jeder Walze.
+	\item \textbf{Ringstellung}: Mechanische Verschiebung der inneren Verdrahtung jeder Walze.
 	\item \textbf{Steckerbrett}: Buchstabenpaare zur Substitution, einzugeben als zwei Zeichen pro Feld.
 \end{itemize}
 
@@ -2255,7 +2254,7 @@ Die Aufgabe, eine bestehende C-Implementierung der Enigma-Maschine als Webanwend
 
 \subsection{Herausforderungen in der technischen Umsetzung}
 
-Die Anbindung der bestehenden C-Implementierung der Enigma-Maschine an die Java-basierte Webarchitektur stellte erhebliche technische Herausforderungen dar. Zwar gestaltete sich die Umsetzung der FFM API zunächst als schwierig und zeitaufwändig, dennoch erwies sich der Einsatz von FFM letztlich als die richtige Entscheidung. Die API ermöglichte eine stabile Schnittstelle, die den Datenaustausch zwischen C und Java zuverlässig realisierte.
+Die Anbindung der bestehenden C-Implementierung der Enigma-Maschine an die Java-basierte Webarchitektur stellte erhebliche technische Herausforderungen dar. Zwar gestaltete sich die Umsetzung der FFM API zunächst als schwierig und zeitaufwändig, dennoch erwies sich der Einsatz von FFM letztlich als die richtige Entscheidung. Die FFM API ermöglichte eine stabile Schnittstelle, die den Datenaustausch zwischen C und Java zuverlässig realisierte.
 
 Auch die Anbindung der PostgreSQL-Datenbank erwies sich als anspruchsvoll. Die Entwicklung performanter und komplexer Abfragen im Java-Backend erforderte umfangreiche Optimierungen und ein tiefgehendes Verständnis der Datenbank- und Framework-Mechanismen. Besonders die Performanceoptimierung des Katalogsystems erwies sich als deutlich aufwändiger als zunächst erwartet und erforderte wiederholte Anpassungen, um eine flüssige Benutzererfahrung sicherzustellen.
 
